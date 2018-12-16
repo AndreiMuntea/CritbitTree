@@ -19,6 +19,11 @@ CritBitTree::InsertNode(
     BYTE mask = 0;
     BYTE direction = 0;
 
+    if (IsNodeInternal(Node))
+    {
+        return;
+    }
+
     if (IsTreeEmpty())
     {
         root = (void*)(Node);
@@ -44,7 +49,7 @@ void CritBitTree::InsertNode(PUNICODE_STRING Node, BYTE Direction, BYTE Mask, US
 
     while (IsNodeInternal(*current))
     {
-        auto node = (CritBitNode*)UntagNode(*current);
+        auto node = UntagNode(*current);
 
         if (node->ByteIndex > newNode->ByteIndex)
         {
@@ -64,7 +69,7 @@ void CritBitTree::InsertNode(PUNICODE_STRING Node, BYTE Direction, BYTE Mask, US
     *current = TagNode(newNode);
 }
 
-void *
+PUNICODE_STRING
 CritBitTree::FindBestMatch(
     PUNICODE_STRING Node
 )
@@ -73,12 +78,12 @@ CritBitTree::FindBestMatch(
 
     while (!IsNodeExternal(currentNode))
     {
-        auto node = (CritBitNode*)(UntagNode(currentNode));
-        auto direction = GetDirection(Node, node->ByteIndex, node->Mask);
-        currentNode = node->Children[direction];
+        auto node       = UntagNode(currentNode);
+        auto direction  = GetDirection(Node, node->ByteIndex, node->Mask);
+        currentNode     = node->Children[direction];
     }
 
-    return currentNode;
+    return (PUNICODE_STRING)currentNode;
 }
 
 bool
@@ -89,10 +94,10 @@ CritBitTree::HasDivergentPoint(
     BYTE&           Direction
 )
 {
-    auto bestMatch = (PUNICODE_STRING)(FindBestMatch(Node));
+    auto bestMatch       = FindBestMatch(Node);
     auto bestMatchBuffer = (BYTE*)(bestMatch->Buffer);
-    auto nodeBuffer = (BYTE*)(Node->Buffer);
-    auto length = min(Node->Length, bestMatch->Length);
+    auto nodeBuffer      = (BYTE*)(Node->Buffer);
+    auto length          = min(Node->Length, bestMatch->Length);
 
     Index = 0;
     Mask = 0;
@@ -171,13 +176,13 @@ CritBitTree::TagNode(
     return (void*)(node | 1);       // Set last bit
 }
 
-void*
+CritBitNode*
 CritBitTree::UntagNode(
     void * Node
 )
 {
     size_t node = (size_t)(Node);
-    return (void*)(node - 1);       // Unset last bit
+    return (CritBitNode*)(node - 1); // Unset last bit
 }
 
 bool
@@ -219,7 +224,7 @@ void CritBitTree::BFS()
         auto c = q[current++];
         if (IsNodeExternal(c)) continue;
 
-        auto node = (CritBitNode*)UntagNode(c);
+        auto node = UntagNode(c);
         q.push_back(node->Children[0]);
         q.push_back(node->Children[1]);
     }
@@ -229,8 +234,8 @@ void CritBitTree::BFS()
         std::wcout << "================================" << std::endl;
         if (IsNodeInternal(c))
         {
-            auto node = (CritBitNode*)UntagNode(c);
-            std::wcout << "Address   " << &node << std::endl;
+            auto node = UntagNode(c);
+            std::wcout << "Address   " << node << std::endl;
             std::wcout << "ByteIndex " << node->ByteIndex << std::endl;
             std::wcout << "Mask      " << std::bitset<8>(node->Mask) << std::endl;
             std::wcout << "Child 0   " << node->Children[0] << std::endl;
@@ -247,20 +252,4 @@ void CritBitTree::BFS()
 
         std::wcout << "================================" << std::endl;
     }
-}
-
-CritBitNode::CritBitNode()
-{
-    this->Children[0] = nullptr;
-    this->Children[1] = nullptr;
-    this->ByteIndex = 0;
-    this->Mask = 0;
-}
-
-CritBitNode::~CritBitNode()
-{
-    this->Children[0] = nullptr;
-    this->Children[1] = nullptr;
-    this->ByteIndex = 0;
-    this->Mask = 0;
 }

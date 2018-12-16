@@ -8,10 +8,6 @@
 #include <iostream>
 
 void TestAll();
-void TestTagging();
-void TestUntagging();
-void TestIsInternal();
-void TestIsExternal();
 void TestInsert1();
 
 int main()
@@ -23,47 +19,10 @@ int main()
 
 void TestAll()
 {
-    TestTagging();
-    TestUntagging();
-    TestIsInternal();
-    TestIsExternal();
     TestInsert1();
 }
 
-void TestTagging()
-{
-    CritBitTree tree;
-    size_t tag = 0x190;
-    auto result = tree.TagNode((void*)(tag));
 
-    assert((size_t)(result) == tag + 1);
-}
-
-void TestUntagging()
-{
-    CritBitTree tree;
-    size_t tag = 0x171;
-    auto result = tree.UntagNode((void*)(tag));
-
-    assert((size_t)(result) == tag - 1);
-}
-
-void TestIsInternal()
-{
-    CritBitTree tree;
-    size_t externalNode = 0x1A0;
-    size_t internalNode = 0x1F1;
-    assert(tree.IsNodeInternal((void*)(internalNode)));
-    assert(!tree.IsNodeInternal((void*)(externalNode)));
-}
-void TestIsExternal()
-{
-    CritBitTree tree;
-    size_t externalNode = 0x120;
-    size_t internalNode = 0x151;
-    assert(!tree.IsNodeExternal((void*)(internalNode)));
-    assert(tree.IsNodeExternal((void*)(externalNode)));
-}
 
 void TestInsert1()
 {
