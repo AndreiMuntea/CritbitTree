@@ -200,9 +200,13 @@ CritBitTree::NewNode(
 )
 {
     auto node = new CritBitNode();
-    if (IsNodeInternal((void*)(node))) // Check node to be aligned 
+    if (IsNodeInternal(node)) // Check node to be aligned 
     {
         delete node;
+        node = nullptr;
+    }
+    if (!node)
+    {
         return nullptr;
     }
 
